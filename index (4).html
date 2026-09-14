@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metchro Part Request</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --steel-900: #0f1117;
+      --steel-800: #181c25;
+      --steel-700: #1f2433;
+      --steel-600: #2a3042;
+      --steel-500: #3a4156;
+      --steel-400: #5a6278;
+      --steel-300: #8892a4;
+      --steel-200: #b8c1cf;
+      --steel-100: #dde3eb;
+      --amber: #e8a020;
+      --amber-light: #f5bc50;
+      --amber-dim: rgba(232,160,32,0.12);
+      --green: #3ec97a;
+      --red: #e85050;
+      --white: #f0f4f8;
+      --radius: 6px;
+      --transition: 0.18s ease;
+    }
+    html, body { min-height: 100vh; background: var(--steel-900); color: var(--white); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.5; }
+
+    .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 48px 20px 80px; }
+
+    .header { width: 100%; max-width: 720px; margin-bottom: 32px; }
+    .logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .logo-mark { width: 34px; height: 34px; background: var(--amber); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+    .logo-text { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; letter-spacing: 0.08em; }
+    .logo-text span { color: var(--amber); }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 5px; }
+    .subtitle { color: var(--steel-300); font-size: 13px; }
+
+    .card { width: 100%; max-width: 720px; background: var(--steel-800); border: 1px solid var(--steel-600); border-radius: 10px; overflow: hidden; }
+    .card-section { padding: 26px 30px; border-bottom: 1px solid var(--steel-700); }
+    .card-section:last-child { border-bottom: none; }
+    .section-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--steel-600); }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .field-row.single { grid-template-columns: 1fr; }
+    .field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 11px; font-weight: 500; letter-spacing: 0.04em; color: var(--steel-200); }
+    label .req { color: var(--amber); margin-left: 2px; }
+    label .opt { color: var(--steel-400); font-weight: 400; margin-left: 4px; }
+
+    input[type="text"], input[type="email"], select {
+      background: var(--steel-700); border: 1px solid var(--steel-500); border-radius: var(--radius);
+      color: var(--white); font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 12px;
+      width: 100%; outline: none; transition: border-color var(--transition), box-shadow var(--transition);
+      appearance: none; -webkit-appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+    input::placeholder { color: var(--steel-400); }
+    input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.04em; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892a4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer;
+    }
+    select:disabled { opacity: 0.35; cursor: not-allowed; }
+    select option { background: var(--steel-700); }
+    select.filled { border-color: rgba(232,160,32,0.45); }
+
+    textarea {
+      background: var(--steel-700); border: 1px solid var(--steel-500); border-radius: var(--radius);
+      color: var(--white); font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 12px;
+      width: 100%; outline: none; resize: vertical; min-height: 72px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    textarea:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+    textarea::placeholder { color: var(--steel-400); }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
+    .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--steel-500); background: transparent; color: var(--steel-200); font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; font-family: 'Inter', sans-serif; }
+    .chip:hover { border-color: var(--steel-300); color: var(--white); }
+    .chip.selected { background: var(--amber-dim); border-color: var(--amber); color: var(--amber-light); }
+    .chip:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .spec-summary { margin-top: 18px; background: var(--steel-700); border: 1px solid var(--steel-600); border-radius: var(--radius); padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px; align-items: center; }
+    .spec-chip { background: var(--amber-dim); border: 1px solid rgba(232,160,32,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--amber-light); display: flex; align-items: center; gap: 5px; }
+    .spec-chip .k { color: var(--steel-400); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .spec-empty { color: var(--steel-400); font-size: 12px; font-style: italic; }
+
+    .dim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .dim-field { display: flex; flex-direction: column; gap: 5px; }
+    .dim-input-wrap { position: relative; display: flex; align-items: center; }
+    .dim-input-wrap input { padding-right: 36px; }
+    .dim-unit { position: absolute; right: 10px; font-size: 11px; color: var(--steel-400); font-family: 'IBM Plex Mono', monospace; pointer-events: none; }
+
+    .submit-area { padding: 22px 30px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .submit-note { font-size: 12px; color: var(--steel-300); line-height: 1.5; }
+    .btn-submit { background: var(--amber); color: var(--steel-900); border: none; border-radius: var(--radius); padding: 11px 26px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; white-space: nowrap; transition: background var(--transition), transform 0.1s; }
+    .btn-submit:hover { background: var(--amber-light); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { background: var(--steel-500); color: var(--steel-300); cursor: not-allowed; }
+    .sending { display: flex; align-items: center; gap: 10px; color: var(--steel-300); font-size: 13px; }
+    .spinner { width: 17px; height: 17px; border: 2px solid var(--steel-500); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-banner { background: rgba(232,80,80,0.1); border: 1px solid var(--red); border-radius: var(--radius); padding: 9px 16px; font-size: 12px; color: #f08080; margin: 0 30px 4px; }
+
+    .success-card { width: 100%; max-width: 720px; background: var(--steel-800); border: 1px solid var(--green); border-radius: 10px; padding: 48px 40px; text-align: center; }
+    .success-icon { width: 52px; height: 52px; background: rgba(62,201,122,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+    .success-card h2 { font-size: 21px; font-weight: 600; margin-bottom: 8px; }
+    .success-card p { color: var(--steel-300); font-size: 13px; max-width: 420px; margin: 0 auto 20px; }
+    .success-ref { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(232,160,32,0.3); border-radius: var(--radius); padding: 7px 18px; display: inline-block; letter-spacing: 0.06em; }
+    .btn-reset { margin-top: 18px; background: transparent; border: 1px solid var(--steel-500); color: var(--steel-200); border-radius: var(--radius); padding: 9px 22px; font-family: 'Inter', sans-serif; font-size: 13px; cursor: pointer; transition: border-color var(--transition), color var(--transition); }
+    .btn-reset:hover { border-color: var(--steel-300); color: var(--white); }
+
+    .helper-text { font-size: 11px; color: var(--steel-400); margin-top: 3px; }
+
+    @media (max-width: 580px) {
+      .page { padding: 24px 12px 60px; }
+      .card-section { padding: 20px 16px; }
+      .submit-area { flex-direction: column; align-items: stretch; text-align: center; }
+      .field-row, .field-row.triple { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="page">
+
+    <div class="header">
+      <div class="logo-row">
+        <div class="logo-mark">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="1" y="7" width="16" height="4" rx="1" fill="#0f1117"/>
+            <rect x="5" y="3" width="8" height="12" rx="1" fill="#0f1117" opacity="0.55"/>
+          </svg>
+        </div>
+        <div class="logo-text">MET<span>CHRO</span></div>
+      </div>
+      <h1>Part Request</h1>
+      <p class="subtitle">Use the dropdowns below to describe the part as precisely as possible. Our team will match it to the Metchro catalogue and reply by email.</p>
+    </div>
+
+    <div v-if="submitted" class="success-card">
+      <div class="success-icon">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <path d="M5 13l6 6 10-10" stroke="#3ec97a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>Request received</h2>
+      <p>We'll find the Metchro equivalent and get back to you as soon as possible.</p>
+      <button class="btn-reset" @click="resetForm">Submit another request</button>
+    </div>
+
+    <template v-else>
+      <div class="card">
+
+        <!-- 01 Contact -->
+        <div class="card-section">
+          <div class="section-label">01. Contact</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Customer name <span class="req">*</span></label>
+              <input type="text" v-model="form.customerName" placeholder="Full name" />
+            </div>
+            <div class="field">
+              <label>Email address <span class="req">*</span></label>
+              <input type="email" v-model="form.customerEmail" placeholder="email@company.com" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 Manufacturer + Part Number -->
+        <div class="card-section">
+          <div class="section-label">02. Manufacturer &amp; Part Number</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Competitor / manufacturer <span class="req">*</span></label>
+              <select v-model="form.manufacturer" :class="{ filled: form.manufacturer }">
+                <option value="">Select manufacturer...</option>
+                <option v-for="m in manufacturers" :key="m.id" :value="m.id">{{ m.label }}</option>
+              </select>
+              <input v-if="form.manufacturer === 'other'" type="text" v-model="form.manufacturerOther"
+                     placeholder="Type the manufacturer name" style="margin-top:6px;" />
+              <p class="helper-text">Which competitor is this part from? Pick "Other" to type a name that isn't listed.</p>
+            </div>
+            <div class="field">
+              <label>Part number <span class="opt">(if known)</span></label>
+              <input type="text" class="mono" v-model="form.partNumber" placeholder="e.g. TFEN-H10 / RW-84212" />
+              <p class="helper-text">Enter the competitor's part number if you have it. Otherwise leave it blank &mdash; the fields below will help us identify the part.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 Part Family + Type -->
+        <div class="card-section">
+          <div class="section-label">03. Part Family &amp; Type</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Part family <span class="req">*</span></label>
+              <select v-model="form.part_family" @change="onFamilyChange" :class="{ filled: form.part_family }">
+                <option value="">Select family...</option>
+                <option v-for="f in families" :key="f.id" :value="f.id">{{ f.label }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Part type <span class="req">*</span></label>
+              <select v-model="form.part_type" :disabled="!form.part_family" :class="{ filled: form.part_type }">
+                <option value="">Select type...</option>
+                <option v-for="t in availableTypes" :key="t.id" :value="t.id">{{ t.label }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 04 Brand + Model -->
+        <div class="card-section">
+          <div class="section-label">04. Brand &amp; Model</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Truck brand <span class="req">*</span></label>
+              <select v-model="form.brand" @change="onBrandChange" :class="{ filled: form.brand }">
+                <option value="">Select brand...</option>
+                <option v-for="b in brands" :key="b.id" :value="b.id">{{ b.label }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Truck model(s) <span class="opt">(optional, multi-select)</span></label>
+              <select v-model="form.truck_models_single" :disabled="!form.brand || !availableModels.length" :class="{ filled: form.truck_models.length }" @change="onModelSelect">
+                <option value="">Select model...</option>
+                <option v-for="m in availableModels" :key="m" :value="m">{{ m }}</option>
+              </select>
+              <div class="chip-group" style="margin-top: 6px;" v-if="form.truck_models.length">
+                <button v-for="m in form.truck_models" :key="m" class="chip selected" @click="removeModel(m)" type="button">{{ m }} ✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 05 Zone + Position -->
+        <div class="card-section">
+          <div class="section-label">05. Zone &amp; Position</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Truck zone <span class="req">*</span> <span class="opt">(multi-select)</span></label>
+              <div class="chip-group">
+                <button v-for="z in zones" :key="z.id" type="button"
+                  :class="['chip', form.truck_zones.includes(z.id) ? 'selected' : '']"
+                  @click="toggleArr(form.truck_zones, z.id)">
+                  {{ z.label }}
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Position <span class="req">*</span></label>
+              <select v-model="form.position_single" :class="{ filled: form.position_single }">
+                <option value="">Select position...</option>
+                <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.label }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 06 Finish + Options + Configuration -->
+        <div class="card-section">
+          <div class="section-label">06. Finish, Lighting &amp; Configuration</div>
+
+          <div class="field-row" style="margin-bottom:16px;">
+            <div class="field">
+              <label>Finish <span class="req">*</span></label>
+              <div class="chip-group">
+                <button v-for="f in finishes" :key="f.id" type="button"
+                  :class="['chip', form.finish.includes(f.id) ? 'selected' : '']"
+                  @click="toggleArr(form.finish, f.id)">
+                  {{ f.label }}
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Lighting options <span class="opt">(if applicable)</span></label>
+              <div class="chip-group">
+                <button v-for="o in ledOptions" :key="o.id" type="button"
+                  :class="['chip', form.options.includes(o.id) ? 'selected' : '']"
+                  @click="toggleArr(form.options, o.id)">
+                  {{ o.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Configuration <span class="req">*</span> <span class="opt">(select all that apply)</span></label>
+            <div class="chip-group">
+              <button v-for="c in configurations" :key="c.id" type="button"
+                :class="['chip', form.configuration.includes(c.id) ? 'selected' : '']"
+                @click="toggleArr(form.configuration, c.id)">
+                {{ c.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:14px;" v-if="cabStyleRelevant">
+            <label>Cab style <span class="opt">(if applicable)</span></label>
+            <div class="chip-group">
+              <button v-for="cs in cabStyles" :key="cs.id" type="button"
+                :class="['chip', form.options.includes(cs.id) ? 'selected' : '']"
+                @click="toggleArr(form.options, cs.id)">
+                {{ cs.label }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 07 Dimensions -->
+        <div class="card-section" v-if="relevantDimensions.length">
+          <div class="section-label">07. Dimensions <span style="color:var(--steel-400); font-size:9px; text-transform:none; letter-spacing:0; font-weight:400; margin-left:4px;">(optional)</span></div>
+          <div class="dim-grid">
+            <div class="dim-field" v-for="d in relevantDimensions" :key="d.key">
+              <label>{{ d.label }}</label>
+              <div class="dim-input-wrap">
+                <input type="text" class="mono" v-model="form.dimensions[d.key]" :placeholder="d.placeholder" />
+                <span class="dim-unit">{{ d.unit }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spec summary -->
+        <div class="card-section" style="padding-top:16px; padding-bottom:16px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--steel-400); margin-bottom:10px;">Built specification</div>
+          <div class="spec-summary">
+            <template v-if="specChips.length">
+              <div class="spec-chip" v-for="chip in specChips" :key="chip.key">
+                <span class="k">{{ chip.key }}</span>{{ chip.value }}
+              </div>
+            </template>
+            <span v-else class="spec-empty">Fill in the axes above to assemble the part spec</span>
+          </div>
+          <div v-if="searchQuery" style="margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--steel-400);">
+            <span style="color:var(--steel-500);">search_query:</span> <span style="color:var(--amber-light);">{{ searchQuery }}</span>
+          </div>
+        </div>
+
+        <!-- 08 Notes -->
+        <div class="card-section">
+          <div class="section-label">08. Additional Notes</div>
+          <div class="field">
+            <label>Extra details <span class="opt">(optional)</span></label>
+            <textarea v-model="form.notes" placeholder="Any other detail that helps identify the part. Dimensions not listed above, unusual mount, specific year, etc."></textarea>
+          </div>
+        </div>
+
+        <div v-if="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+        <!-- Submit -->
+        <div class="submit-area">
+          <p class="submit-note">Our team reviews every request and responds within 1 business day.</p>
+          <div v-if="sending" class="sending"><div class="spinner"></div>Sending&#8230;</div>
+          <button v-else class="btn-submit" @click="submitForm" :disabled="!canSubmit">Send Request</button>
+        </div>
+
+      </div>
+    </template>
+
+  </div>
+</div>
+
+<script>
+const { createApp, ref, computed, reactive } = Vue;
+
+createApp({
+  setup() {
+
+    // ── Accessory-part manufacturers (competitors) ─────────────────
+    // TRUX is the primary brand (the only one with a crossover file).
+    // The rest come from David's list; "Other" reveals a free-text field.
+    const manufacturers = [
+      { id: 'trux',            label: 'TRUX' },
+      { id: 'roadworks',       label: 'Roadworks' },
+      { id: 'american_steel',  label: 'American Steel' },
+      { id: 'belmor',          label: 'Belmor' },
+      { id: 'aranda',          label: 'Aranda Truck Accessories' },
+      { id: 'phoenix',         label: 'Phoenix' },
+      { id: 'iowa_customs',    label: 'Iowa Customs' },
+      { id: 'valley_chrome',   label: 'Valley Chrome' },
+      { id: 'jml_customs',     label: 'JML Customs' },
+      { id: 'dieters',         label: 'Dieters' },
+      { id: 'panelite',        label: 'Panelite' },
+      { id: '12_gauge',        label: '12 Gauge Customs' },
+      { id: 'other',           label: 'Other / Not listed' },
+    ];
+
+    const families = [
+      { id: 'body_panels',      label: 'Body & Panels',         count: '5,064' },
+      { id: 'visors_deflect',   label: 'Deflectors & Visors',   count: '1,867' },
+      { id: 'air_exhaust',      label: 'Air & Exhaust',         count: '1,687' },
+      { id: 'lighting',         label: 'Lighting',              count: '1,039' },
+      { id: 'bumpers_grilles',  label: 'Bumpers & Grilles',     count: '1,034' },
+      { id: 'fenders_guards',   label: 'Fenders & Guards',      count: '832'   },
+      { id: 'access_exterior',  label: 'Access & Exterior',     count: '752'   },
+      { id: 'mud_flaps',        label: 'Mud Flaps',             count: '270'   },
+      { id: 'chassis_coupling', label: 'Chassis & Coupling',    count: '282'   },
+      { id: 'accessories',      label: 'Accessories & Kits',    count: '316'   },
+      { id: 'other',            label: 'Other / Not sure',      count: ''       },
+    ];
+
+    const typesByFamily = {
+      body_panels: [
+        { id: 'cab_panel',        label: 'Cab panel' },
+        { id: 'sleeper_panel',    label: 'Sleeper panel' },
+        { id: 'ext_panel',        label: 'Extension panel' },
+        { id: 'cowl_panel',       label: 'Cowl panel' },
+        { id: 'window_trim',      label: 'Window trim / shade / curtain' },
+        { id: 'permit_plate',     label: 'Permit / license plate' },
+        { id: 'door_trim',        label: 'Door trim' },
+        { id: 'fairing_trim',     label: 'Fairing trim' },
+        { id: 'kick_plate',       label: 'Kick plate' },
+        { id: 'frame_cover',      label: 'Rear frame cover' },
+        { id: 'baggage_door',     label: 'Baggage door trim' },
+        { id: 'fuel_tank_skirt',  label: 'Fuel tank skirt' },
+      ],
+      visors_deflect: [
+        { id: 'sun_visor',        label: 'Sun visor' },
+        { id: 'hood_deflector',   label: 'Hood deflector' },
+        { id: 'window_deflector', label: 'Window deflector' },
+        { id: 'side_hood_trim',   label: 'Side hood trim' },
+        { id: 'visor_extension',  label: 'Visor extension trim' },
+        { id: 'top_deflector',    label: 'Top deflector / side trim' },
+      ],
+      air_exhaust: [
+        { id: 'exhaust_stack',          label: 'Exhaust stack' },
+        { id: 'air_cleaner_light_bar',  label: 'Air cleaner light bar' },
+        { id: 'front_air_cleaner_bar',  label: 'Front air cleaner bar (no lights)' },
+        { id: 'rear_air_cleaner_bar',   label: 'Rear air cleaner bar' },
+        { id: 'air_intake_trim',        label: 'Air intake trim' },
+        { id: 'air_filter_shroud',      label: 'Air filter shroud' },
+        { id: 'stack_shield',           label: 'Stack pipe shield' },
+      ],
+      lighting: [
+        { id: 'generic_light_bar',     label: 'Light bar (generic)' },
+        { id: 'bumper_light_bar',      label: 'Bumper light bar' },
+        { id: 'air_cleaner_light_bar', label: 'Air cleaner light bar' },
+        { id: 'firewall_light_bar',    label: 'Firewall light bar' },
+        { id: 'mirror_light_bar',      label: 'Mirror light bar' },
+        { id: 'bezel',                 label: 'Light bezel' },
+      ],
+      bumpers_grilles: [
+        { id: 'bumper_light_bar', label: 'Bumper light bar' },
+        { id: 'front_bumper',     label: 'Front bumper' },
+        { id: 'bumper_insert',    label: 'Bumper insert / trim' },
+        { id: 'front_grille',     label: 'Front grille' },
+      ],
+      // ── Full fender added between Half and Quarter ──────────
+      fenders_guards: [
+        { id: 'half_fender',         label: 'Half fender' },
+        { id: 'full_fender',         label: 'Full fender' },
+        { id: 'quarter_fender',      label: 'Quarter fender' },
+        { id: 'front_fender_guard',  label: 'Front fender guard' },
+        { id: 'fender_trim',         label: 'Fender trim' },
+        { id: 'fender_mounting_kit', label: 'Fender mounting kit' },
+      ],
+      access_exterior: [
+        { id: 'mirror',         label: 'Mirror' },
+        { id: 'side_step',      label: 'Side step' },
+        { id: 'side_mount_arm', label: 'Side mount arm kit' },
+        { id: 'door_handle',    label: 'Door handle trim' },
+      ],
+      mud_flaps: [
+        { id: 'mud_flap_weight', label: 'Mud flap weight' },
+        { id: 'mud_flap_hanger', label: 'Mud flap hanger' },
+      ],
+      chassis_coupling: [
+        { id: 'rear_frame_cover', label: 'Rear / center back panel' },
+        { id: 'fifth_wheel_ramp', label: '5th wheel ramp' },
+        { id: 'air_line_box',     label: 'Air line box' },
+        { id: 'fuel_tank_skirt',  label: 'Fuel tank skirt' },
+        { id: 'collar',           label: 'SS collar' },
+      ],
+      accessories: [
+        { id: 'bracket',    label: 'Bracket / mounting arm' },
+        { id: 'emblem',     label: 'Emblem' },
+        { id: 'grommet',    label: 'Grommet' },
+        { id: 'wire_cover', label: 'Wire cover kit' },
+        { id: 'lug_nut',    label: 'Lug nut cover' },
+        { id: 'other',      label: 'Other / Not sure' },
+      ],
+      other: [
+        { id: 'other', label: 'Other / Not sure' },
+      ],
+    };
+
+    Object.keys(typesByFamily).forEach(k => {
+      if (k !== 'other' && !typesByFamily[k].some(t => t.id === 'other')) {
+        typesByFamily[k].push({ id: 'other', label: 'Other / Not sure' });
+      }
+    });
+
+    const brands = [
+      { id: 'peterbilt',     label: 'Peterbilt',        digit: '1' },
+      { id: 'universal',     label: 'Universal',        digit: '9' },
+      { id: 'kenworth',      label: 'Kenworth',         digit: '2' },
+      { id: 'freightliner',  label: 'Freightliner',     digit: '3' },
+      { id: 'international', label: 'International',    digit: '4' },
+      { id: 'western_star',  label: 'Western Star',     digit: '5' },
+      { id: 'mack',          label: 'Mack',             digit: '6' },
+      { id: 'volvo',         label: 'Volvo',            digit: '7' },
+      { id: 'hino',          label: 'Hino',             digit: 'H' },
+      { id: 'caterpillar',   label: 'Caterpillar',      digit: '0' },
+      { id: 'isuzu',         label: 'Isuzu',            digit: 'U' },
+      { id: 'ford',          label: 'Ford',             digit: 'F' },
+      { id: 'autocar',       label: 'Autocar',          digit: 'A' },
+      { id: 'other',         label: 'Other / Not sure', digit: '?' },
+    ];
+
+    const modelsByBrand = {
+      peterbilt:    ['389','388','567','379','579','378','386','367','365','W990','587','Ultracab','Ultraloft'],
+      kenworth:     ['T800','W900','W900L','T680','W900B','T880','T660','T370','T300','W990','T270','T600','T170','T470','T440','T400','T880S','T800W','T2000'],
+      freightliner: ['FLD120','FLD112','Cascadia','Coronado','Columbia','Century','FLD'],
+      international:['ProStar','9000','9900','9400','LT625','9300','LoneStar','4000','9200','HX520','HX515','9100','DuraStar','HX620','HX615','4700','4300'],
+      western_star: ['49X','4900'],
+      mack:         ['Pinnacle','Anthem','Vision','Granite'],
+      volvo:        ['VN780','VN670','VN630','VN730','VN','VNL','VN300','VNR'],
+      hino:         ['L-Series MD','XL-Series HD'],
+      caterpillar:  ['CT660L','CT660'],
+      isuzu:        ['NPR','NQR','NRR','FTR','FVR'],
+      ford:         ['F650','F750'],
+      autocar:      ['DC Series'],
+      universal:    [],
+      other:        [],
+    };
+
+    Object.keys(modelsByBrand).forEach(b => {
+      if (modelsByBrand[b].length && !modelsByBrand[b].includes('Other / Not sure')) {
+        modelsByBrand[b].push('Other / Not sure');
+      }
+    });
+
+    const zones = [
+      { id: 'bumper_zone',            label: 'Bumper' },
+      { id: 'hood_fender_zone',       label: 'Hood / Fender' },
+      { id: 'cab_zone',               label: 'Cab' },
+      { id: 'sleeper_zone',           label: 'Sleeper' },
+      { id: 'fairing_kickplate_zone', label: 'Fairing / Kick plate' },
+      { id: 'rear_zone',              label: 'Rear' },
+      { id: 'firewall',               label: 'Firewall' },
+      { id: 'door',                   label: 'Door' },
+      { id: 'other',                  label: 'Other / Not sure' },
+    ];
+
+    const positions = [
+      { id: 'side',      label: 'Side' },
+      { id: 'extension', label: 'Extension' },
+      { id: 'front',     label: 'Front' },
+      { id: 'rear',      label: 'Rear' },
+      { id: 'upper',     label: 'Upper' },
+      { id: 'lower',     label: 'Lower' },
+      { id: 'center',    label: 'Center' },
+      { id: 'inset',     label: 'Inset' },
+      { id: 'other',     label: 'Other / Not sure' },
+    ];
+
+    const configurations = [
+      { id: 'kit',         label: 'Kit / Set' },
+      { id: 'extension',   label: 'Extension' },
+      { id: 'logo',        label: 'With brand logo' },
+      { id: 'pair',        label: 'Pair' },
+      { id: 'wide',        label: 'Wide' },
+      { id: 'oem',         label: 'OEM style' },
+      { id: 'hd',          label: 'Heavy duty' },
+      { id: 'replacement', label: 'Replacement' },
+      { id: 'other',       label: 'Other / Not sure' },
+    ];
+
+    const finishes = [
+      { id: 'chrome',     label: 'Chrome' },
+      { id: 'stainless',  label: 'Stainless Steel' },
+      { id: 'galvanized', label: 'Galvanized' },
+      { id: 'ss430',      label: 'SS430 / SS304' },
+      { id: 'other',      label: 'Other / Not sure' },
+    ];
+
+    const ledOptions = [
+      { id: 'led',    label: 'LED' },
+      { id: 'led_c',  label: 'LED-C' },
+      { id: 'led_b',  label: 'LED + Bezel' },
+      { id: 'led_fc', label: 'LED-FC' },
+      { id: 'led_f',  label: 'LED-F' },
+      { id: 'led_cb', label: 'LED-CB' },
+    ];
+
+    const cabStyles = [
+      { id: 'high_roof', label: 'High roof' },
+      { id: 'low_roof',  label: 'Low roof / Day cab' },
+      { id: 'flat_top',  label: 'Flat top' },
+      { id: 'sba',       label: 'Set-back axle (SBA)' },
+      { id: 'next_gen',  label: 'Next Gen (2022+)' },
+    ];
+
+    const dimensionsByFamily = {
+      visors_deflect:   [{ key: 'drop_height', label: 'Drop height', unit: '&#34;', placeholder: 'e.g. 5, 8, 11, 12, 14' }],
+      fenders_guards:   [
+        { key: 'length_in', label: 'Length', unit: '&#34;', placeholder: 'e.g. 48, 60, 72, 94' },
+        { key: 'gauge_ga',  label: 'Gauge',  unit: 'GA',    placeholder: 'e.g. 14, 16, 18, 20' },
+      ],
+      body_panels: [
+        { key: 'bbc',      label: 'BBC (bumper-to-back-of-cab)', unit: '&#34;', placeholder: 'e.g. 76, 80, 116, 122' },
+        { key: 'width_in', label: 'Width', unit: '&#34;', placeholder: 'e.g. 1.5, 2, 3, 5' },
+      ],
+      mud_flaps:        [{ key: 'length_in', label: 'Length', unit: '&#34;', placeholder: 'e.g. 48, 60, 72' }],
+      chassis_coupling: [
+        { key: 'length_in', label: 'Length', unit: '&#34;', placeholder: 'e.g. 54, 66' },
+        { key: 'gauge_ga',  label: 'Gauge',  unit: 'GA',    placeholder: 'e.g. 11, 14, 16' },
+      ],
+      lighting: [
+        { key: 'hole_count', label: 'Light hole count', unit: '',      placeholder: 'e.g. 2, 3, 4, 8, 18' },
+        { key: 'hole_size',  label: 'Light hole size',  unit: '&#34;', placeholder: 'e.g. 4 round, 4.5 oval' },
+      ],
+      bumpers_grilles: [
+        { key: 'hole_count', label: 'Light hole count', unit: '',      placeholder: 'e.g. 1, 2, 4, 16' },
+        { key: 'width_in',   label: 'Width',            unit: '&#34;', placeholder: 'e.g. 1.06, 1.25, 2' },
+      ],
+    };
+
+    const form = reactive({
+      customerName: '', customerEmail: '', partNumber: '',
+      manufacturer: '', manufacturerOther: '',
+      part_family: '', part_type: '',
+      brand: '', truck_models: [], truck_models_single: '',
+      truck_zones: [], position_single: '',
+      finish: [], options: [], configuration: [],
+      dimensions: {}, notes: '',
+    });
+
+    const submitted = ref(false);
+    const sending   = ref(false);
+    const errorMsg  = ref('');
+    const refNumber = ref('');
+
+    const availableTypes      = computed(() => typesByFamily[form.part_family] || []);
+    const availableModels     = computed(() => modelsByBrand[form.brand] || []);
+    const relevantDimensions  = computed(() => dimensionsByFamily[form.part_family] || []);
+    const cabStyleRelevant    = computed(() => ['body_panels','visors_deflect'].includes(form.part_family));
+
+    const manufacturerName = computed(() => {
+      if (!form.manufacturer) return '';
+      if (form.manufacturer === 'other') return form.manufacturerOther.trim();
+      return manufacturers.find(m => m.id === form.manufacturer)?.label || '';
+    });
+
+    const specChips = computed(() => {
+      const c = [];
+      if (manufacturerName.value) c.push({ key:'Mfr', value: manufacturerName.value });
+      if (form.part_family) { const f = families.find(x=>x.id===form.part_family); if (f) c.push({ key:'Family', value:f.label }); }
+      if (form.part_type)   { const t = availableTypes.value.find(x=>x.id===form.part_type); if (t) c.push({ key:'Type', value:t.label }); }
+      if (form.brand)       { const b = brands.find(x=>x.id===form.brand); if (b) c.push({ key:'Brand', value:b.label }); }
+      if (form.truck_models.length)  c.push({ key:'Model',  value: form.truck_models.join(' / ') });
+      if (form.truck_zones.length)   c.push({ key:'Zone',   value: form.truck_zones.map(z=>zones.find(x=>x.id===z)?.label).join(' + ') });
+      if (form.position_single)      { const p = positions.find(x=>x.id===form.position_single); if (p) c.push({ key:'Pos', value:p.label }); }
+      if (form.finish.length)        c.push({ key:'Finish', value: form.finish.map(f=>finishes.find(x=>x.id===f)?.label).join(' / ') });
+      if (form.options.length) {
+        const allOpts = [...ledOptions, ...cabStyles];
+        c.push({ key:'Options', value: form.options.map(o=>allOpts.find(x=>x.id===o)?.label).filter(Boolean).join(' + ') });
+      }
+      if (form.configuration.length) c.push({ key:'Config', value: form.configuration.map(cf=>configurations.find(x=>x.id===cf)?.label).join(' + ') });
+      Object.entries(form.dimensions).forEach(([k,v]) => {
+        if (v) { const d=relevantDimensions.value.find(x=>x.key===k); c.push({ key:d?.label||k, value:v+(d?.unit?' '+d.unit:'') }); }
+      });
+      return c;
+    });
+
+    const searchQuery = computed(() => {
+      const parts = [];
+      if (manufacturerName.value) parts.push(manufacturerName.value.toLowerCase());
+      if (form.brand) { const b=brands.find(x=>x.id===form.brand); if (b) parts.push(b.label.toLowerCase()); }
+      if (form.truck_models.length)  parts.push(...form.truck_models.map(m=>m.toLowerCase()));
+      if (form.position_single)      parts.push(form.position_single);
+      if (form.part_type)            parts.push(form.part_type);
+      if (form.configuration.length) parts.push(...form.configuration);
+      if (form.finish.includes('stainless')) parts.push('stainless');
+      if (form.finish.includes('chrome'))    parts.push('chrome');
+      if (form.options.some(o=>o.startsWith('led'))) parts.push('led');
+      Object.entries(form.dimensions).forEach(([,v])=>{ if (v) parts.push(v); });
+      if (form.notes.trim()) parts.push(form.notes.trim().substring(0,60));
+      return parts.filter(Boolean).join(' ');
+    });
+
+    const canSubmit = computed(() =>
+      form.customerName.trim() && form.customerEmail.trim() &&
+      form.manufacturer && (form.manufacturer !== 'other' || form.manufacturerOther.trim()) &&
+      form.part_family && form.part_type && form.brand &&
+      form.truck_zones.length > 0 && form.position_single &&
+      form.finish.length > 0 && form.configuration.length > 0
+    );
+
+    function onFamilyChange() { form.part_type = ''; form.dimensions = {}; }
+    function onBrandChange()  { form.truck_models = []; form.truck_models_single = ''; }
+    function onModelSelect() {
+      if (form.truck_models_single && !form.truck_models.includes(form.truck_models_single))
+        form.truck_models.push(form.truck_models_single);
+      form.truck_models_single = '';
+    }
+    function removeModel(m) { form.truck_models = form.truck_models.filter(x=>x!==m); }
+    function toggleArr(arr, val) {
+      const i = arr.indexOf(val);
+      if (i === -1) arr.push(val); else arr.splice(i, 1);
+    }
+
+    async function submitForm() {
+      errorMsg.value = '';
+      if (!form.customerName.trim() || !form.customerEmail.trim()) {
+        errorMsg.value = 'Please fill in your name and email.'; return;
+      }
+      const missing = [];
+      if (!form.manufacturer)         missing.push('Manufacturer');
+      if (form.manufacturer === 'other' && !form.manufacturerOther.trim()) missing.push('Manufacturer name');
+      if (!form.part_family)          missing.push('Part Family');
+      if (!form.part_type)            missing.push('Part Type');
+      if (!form.brand)                missing.push('Brand');
+      if (!form.truck_zones.length)   missing.push('Zone');
+      if (!form.position_single)      missing.push('Position');
+      if (!form.finish.length)        missing.push('Finish');
+      if (!form.configuration.length) missing.push('Configuration');
+      if (missing.length) {
+        errorMsg.value = 'Please complete the required fields: ' + missing.join(', ') + '. If unsure, select "Other / Not sure".';
+        return;
+      }
+      const dims = {};
+      Object.entries(form.dimensions).forEach(([k,v])=>{ if (v) dims[k]=v; });
+      const payload = {
+        customer_name:  form.customerName.trim(),
+        customer_email: form.customerEmail.trim(),
+        manufacturer:   manufacturerName.value || null,
+        part_number:    form.partNumber.trim() || null,
+        part_family:    form.part_family  || null,
+        part_type:      form.part_type    || null,
+        brand:          form.brand        || null,
+        truck_models:   form.truck_models.length   ? form.truck_models   : null,
+        truck_zones:    form.truck_zones.length    ? form.truck_zones    : null,
+        positions:      form.position_single       ? [form.position_single] : null,
+        finish:         form.finish.length         ? form.finish         : null,
+        options:        form.options.length        ? form.options        : null,
+        configuration:  form.configuration.length  ? form.configuration  : null,
+        dimensions:     Object.keys(dims).length   ? dims                : null,
+        search_query:   searchQuery.value || null,
+        notes:          form.notes.trim() || null,
+      };
+      sending.value = true;
+      try {
+        const WEBHOOK_URL = 'https://fabricioinj.app.n8n.cloud/webhook/a7f53161-7181-4dc4-8fae-c633f18e67c0';
+        const res = await fetch(WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await res.json();
+        submitted.value = true;
+      } catch(err) {
+        console.error(err);
+        errorMsg.value = 'There was a problem sending your request. Please try again or contact us directly.';
+      } finally {
+        sending.value = false;
+      }
+    }
+
+    function resetForm() {
+      Object.assign(form, {
+        customerName:'', customerEmail:'', partNumber:'',
+        manufacturer:'', manufacturerOther:'',
+        part_family:'', part_type:'', brand:'',
+        truck_models:[], truck_models_single:'',
+        truck_zones:[], position_single:'',
+        finish:[], options:[], configuration:[],
+        dimensions:{}, notes:'',
+      });
+      submitted.value = false;
+      errorMsg.value  = '';
+      refNumber.value = '';
+    }
+
+    return {
+      manufacturers, families, brands, zones, positions, configurations, finishes, ledOptions, cabStyles,
+      availableTypes, availableModels, relevantDimensions, cabStyleRelevant,
+      form, manufacturerName, specChips, searchQuery, canSubmit,
+      onFamilyChange, onBrandChange, onModelSelect, removeModel, toggleArr,
+      submitForm, resetForm,
+      submitted, sending, errorMsg, refNumber,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
